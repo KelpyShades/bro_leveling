@@ -22,8 +22,9 @@ This document defines the **entire system** so an AI or developer can build the 
 - User signs up
 - User is automatically added to the **only group** in the system
 - Starting Aura: **100**
-- Starting Title: **Invisible (since they start with 100 aura)**
+- Starting Title: **Invisible**
 - Streak: **0**
+- **Indestructible Virgin Mode**: Active (Immune to penalties for first 3 days or until first penalty)
 
 There is no group selection or creation logic.
 
@@ -37,6 +38,13 @@ There is no group selection or creation logic.
 |------|------|
 | Daily system gain | +10 |
 | Weekly system bonus (active ≥4 days) | +50 |
+| Shield Reversal | Restores penalty amount (max 1/week) |
+
+### Aura Decay
+- **Inactivity Penalty**:
+  - If inactive > 26 hours: **-25 Aura**
+  - Every 24h after: **-50 Aura**
+- **Floor**: Aura cannot decay below 0.
 
 ---
 
@@ -139,7 +147,19 @@ Any user can create an **Aura Proposal** to:
 - Approved → Aura applied
 - Rejected → No effect
 
-Proposals cannot be retried for the same event.
+- Approved → Aura applied
+- Rejected → No effect
+
+### Shield Mechanic
+- **Usage**: Once per week
+- **Window**: 1 hour after proposal execution
+- **Effect**: Reverses an approved penalty proposal.
+- **Cost**: None (Strategic cooldown).
+
+### Indestructible Virgin Mode
+- **Condition**: No penalties received in the last 3 days.
+- **Effect**: 12-hour immunity from new penalties after Daily Claim.
+- **Visual**: "Indestructible" tag on UI.
 
 ---
 
@@ -195,7 +215,9 @@ Missed recovery is not carried forward.
 ## 9. Flutter Tech Stack
 
 ### Core Framework
+### Core Framework
 - Flutter (stable)
+- **PWA Support** (Black & Gold Theme)
 
 ### State Management
 - `riverpod`

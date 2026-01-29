@@ -7,7 +7,7 @@ flutter_native_splash:
   # dart run flutter_native_splash:remove
 
 
-  color: "#000000"
+  color: "#1A1A1A"
 
   # Optional parameters are listed below.  To enable a parameter, uncomment the line by removing
   # the leading # character.
@@ -32,10 +32,10 @@ flutter_native_splash:
     image: assets/images/splash.png
 
     # Splash screen background color.
-    color: "#000000"
+    color: "#1A1A1A"
 
     # App icon background color.
-    icon_background_color: "#000000"
+    icon_background_color: "#1A1A1A"
 
   android: true
   web: true

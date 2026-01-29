@@ -34,6 +34,9 @@ create table users (
   title text not null default 'NPC',
   is_broken boolean not null default false,
   last_daily_claim date,
+  last_penalty_at timestamptz,
+  indestructible_until timestamptz,
+  last_decay_at timestamptz,
   created_at timestamptz not null default now()
 );
 ```
@@ -74,7 +77,8 @@ create table proposals (
   reason text not null,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   created_at timestamptz not null default now(),
-  closes_at timestamptz not null
+  closes_at timestamptz not null,
+  shielded boolean not null default false
 );
 ```
 
@@ -214,7 +218,31 @@ This logic should live in an **Edge Function** to avoid timezone abuse.
 - Only once per calendar week
 - Logs recovery as `aura_events`
 
+- Logs recovery as `aura_events`
+
 ---
+
+## 6. Optimization & Security
+### Performance Indexes
+```sql
+create index idx_users_aura on users(aura DESC);
+create index idx_users_last_daily_claim on users(last_daily_claim);
+create index idx_proposals_target on proposals(target_user_id);
+create index idx_proposals_closes on proposals(closes_at);
+create index idx_aura_events_created_at on aura_events(created_at DESC);
+create index idx_aura_events_user_created on aura_events(user_id, created_at DESC);
+```
+
+### Indestructible Mode Logic
+Triggers enforce immunity:
+- `tr_indestructible_on_claim`: Grants 12h immunity on daily claim.
+- `tr_block_indestructible_penalty`: Blocks penalty proposals vs immune users.
+
+### Aura Decay
+Scheduled function `process_aura_decay()`:
+- Checks inactivity > 26h.
+- Deducts 25/50 Aura.
+- **Requires Cron Job**: `SELECT process_aura_decay();` nightly.
 
 ## 6. Indexing (Performance)
 

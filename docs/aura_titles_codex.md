@@ -404,3 +404,19 @@ It represents current dominance — right now, in this moment.
 
 > Aura is not about perfection.
 > It is about consistency, discipline, and how the world responds when you arrive.
+
+---
+
+## **Active States & Penalties**
+
+### **Indestructible Virgin Mode**
+**Condition:** No penalties for 3 days.
+**Effect:** The world cannot touch you. For 12 hours after claiming your daily aura, you are immune to all penalty proposals.
+**Lore:** *purity is power.*
+
+### **Rank Decay**
+**Condition:** Inactivity for > 26 hours.
+**Penalty:**
+- **-25 Aura** (Day 1)
+- **-50 Aura** (Each day after)
+**Lore:** *The world forgets those who do not show up.*
