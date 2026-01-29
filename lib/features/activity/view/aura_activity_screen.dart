@@ -44,7 +44,7 @@ class AuraHistoryScreen extends ConsumerWidget {
 }
 
 class _ActivityList extends ConsumerWidget {
-  final FutureProvider<List<Map<String, dynamic>>> provider;
+  final StreamProvider<List<Map<String, dynamic>>> provider;
   final bool isGlobal;
 
   const _ActivityList({required this.provider, required this.isGlobal});
@@ -106,9 +106,12 @@ class _ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final type = event['type'] as String;
-    final amount = event['amount'] as int;
-    final createdAt = DateTime.parse(event['created_at']);
+    final type = event['source'] as String? ?? 'unknown';
+    final amount = (event['amount'] as num?)?.toInt() ?? 0;
+    final createdAtStr = event['created_at'] as String?;
+    final createdAt = createdAtStr != null
+        ? DateTime.parse(createdAtStr)
+        : DateTime.now();
     // In global feed, 'users' relation might be present. In personal, it might not be needed.
     // However, Supabase returns nested object for relations.
     final userData = event['users'] as Map<String, dynamic>?;

@@ -37,8 +37,8 @@ Color getAuraColor(int aura, {bool isBroken = false}) {
 
 /// Get a short status message based on aura state.
 String getAuraStatus(int aura, bool isBroken) {
-  if (isBroken) return 'BROKEN';
-  if (aura == 0) return 'FALLEN';
+  if (isBroken) return 'AURALESS';
+  if (aura == 0) return 'AURALESS';
   if (aura < 100) return 'STRUGGLING';
   if (aura < 500) return 'RISING';
   if (aura < 1000) return 'RESPECTED';

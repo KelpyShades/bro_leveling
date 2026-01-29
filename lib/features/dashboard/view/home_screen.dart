@@ -3,7 +3,7 @@ import 'package:bro_leveling/core/utils/aura_utils.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
 
 import 'package:bro_leveling/features/dashboard/logic/user_provider.dart';
-import 'package:bro_leveling/features/dashboard/data/user_repository.dart';
+import 'package:bro_leveling/features/dashboard/logic/user_logic.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (_hasCheckedOnboarding) return;
     _hasCheckedOnboarding = true;
 
-    final exists = await ref.read(userRepositoryProvider).userExists();
+    final exists = await ref.read(userLogicProvider).checkUserExists();
     if (!exists && mounted) {
       context.go('/onboarding');
     }
@@ -114,7 +114,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ),
                                 SizedBox(width: 8),
                                 Text(
-                                  'BROKEN',
+                                  'AURALESS',
                                   style: TextStyle(
                                     color: AppColors.error,
                                     fontWeight: FontWeight.bold,
@@ -171,17 +171,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 48),
 
+                        if (_isIndestructible(user.indestructibleUntil))
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'INDESTRUCTIBLE VIRGIN',
+                                style: TextStyle(
+                                  color: AppColors.gold,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                // parse to readable time in 12 hour format
+                                'Until: ${user.indestructibleUntil?.toLocal().toString().split('.')[0] ?? ''}',
+                                style: TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 14,
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        const SizedBox(height: 48),
+
                         // Claim daily button
                         SizedBox(
                           width: 200,
                           height: 56,
                           child: ElevatedButton(
-                            onPressed: user.isBroken
+                            onPressed:
+                                (user.isBroken ||
+                                    _hasClaimedToday(user.lastDailyClaim))
                                 ? null
                                 : () => _claimDaily(context),
-                            child: const Text(
-                              'CLAIM DAILY',
-                              style: TextStyle(letterSpacing: 2),
+                            child: Text(
+                              _hasClaimedToday(user.lastDailyClaim)
+                                  ? 'CLAIMED'
+                                  : 'CLAIM DAILY',
+                              style: const TextStyle(letterSpacing: 2),
                             ),
                           ),
                         ),
@@ -206,45 +237,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       // Indestructible Virgin Mode
-                      if (_isIndestructible(user.indestructibleUntil))
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.success.withAlpha(20),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.success),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.success.withAlpha(50),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.verified_user,
-                                size: 16,
-                                color: AppColors.success,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'INDESTRUCTIBLE',
-                                style: TextStyle(
-                                  color: AppColors.success,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
                       // Shield Indicator
                       GestureDetector(
                         onTap: () => context.push('/streak'),
@@ -359,12 +351,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _claimDaily(BuildContext context) async {
     try {
-      final result = await ref.read(userRepositoryProvider).claimDaily();
+      final logic = ref.read(userLogicProvider);
+
+      // We still need to check state for the specific "Indestructible" snackbar message
+      // as it depends on before/after values.
+      final currentUser = ref.read(userProvider).asData?.value;
+      final wasIndestructible = _isIndestructible(
+        currentUser?.indestructibleUntil,
+      );
+
+      final result = await logic.claimDaily();
+
+      // The stream will naturally update the UI, but we want the snackbar with custom logic.
       if (context.mounted) {
         final bonus = result['milestone_bonus'] ?? 0;
-        final message = bonus > 0
-            ? 'Daily claimed! +${result['aura_gained']} (including +$bonus milestone bonus!)'
-            : 'Daily claimed! +${result['aura_gained']} Aura';
+        final auraGained = result['aura_gained'];
+
+        // Get updated state from stream
+        final updatedUser = ref.read(userProvider).asData?.value;
+        final isNowIndestructible = _isIndestructible(
+          updatedUser?.indestructibleUntil,
+        );
+
+        String message = bonus > 0
+            ? 'Daily claimed! +$auraGained (including +$bonus milestone bonus!)'
+            : 'Daily claimed! +$auraGained Aura';
+
+        if (!wasIndestructible && isNowIndestructible) {
+          message +=
+              '\n🛡️ INDESTRUCTIBLE VIRGIN MODE ACTIVATED! (12h Immunity)';
+        }
+
         showAuraSnackbar(context, message, type: SnackType.success);
       }
     } catch (e) {
@@ -376,7 +393,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _claimRecovery(BuildContext context) async {
     try {
-      await ref.read(userRepositoryProvider).claimWeeklyRecovery();
+      await ref.read(userLogicProvider).claimWeeklyRecovery();
       if (context.mounted) {
         showAuraSnackbar(
           context,
@@ -394,7 +411,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isShieldActive(DateTime? lastShieldUsed) {
     if (lastShieldUsed == null) return true;
     final now = DateTime.now();
-    // Monday 00:00 of current week
     final daysSinceMonday = now.weekday - 1;
     final lastMonday = DateTime(
       now.year,
@@ -407,5 +423,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isIndestructible(DateTime? indestructibleUntil) {
     if (indestructibleUntil == null) return false;
     return DateTime.now().isBefore(indestructibleUntil);
+  }
+
+  bool _hasClaimedToday(DateTime? lastDailyClaim) {
+    if (lastDailyClaim == null) return false;
+    final now = DateTime.now();
+    return lastDailyClaim.year == now.year &&
+        lastDailyClaim.month == now.month &&
+        lastDailyClaim.day == now.day;
   }
 }

@@ -7,3 +7,8 @@ final proposalsProvider = StreamProvider.autoDispose<List<ProposalModel>>((
 ) {
   return ref.watch(proposalRepositoryProvider).getProposalsStream();
 });
+
+final activeProposalsCountProvider = Provider.autoDispose<int>((ref) {
+  final proposals = ref.watch(proposalsProvider).value ?? [];
+  return proposals.where((p) => p.status == 'pending').length;
+});

@@ -1,9 +1,8 @@
 import 'package:bro_leveling/core/constants/theme.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
-import 'package:bro_leveling/features/proposals/data/proposal_repository.dart';
+import 'package:bro_leveling/features/proposals/logic/proposal_logic.dart';
 import 'package:bro_leveling/features/proposals/logic/proposal_provider.dart';
 import 'package:bro_leveling/features/dashboard/logic/user_provider.dart';
-import 'package:bro_leveling/features/dashboard/data/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -276,7 +275,7 @@ class ProposalsScreen extends ConsumerWidget {
     String value,
   ) async {
     try {
-      await ref.read(proposalRepositoryProvider).vote(id, value);
+      await ref.read(proposalLogicProvider).vote(id, value);
       if (context.mounted) {
         showAuraSnackbar(context, 'Vote cast: $value', type: SnackType.success);
       }
@@ -292,13 +291,8 @@ class ProposalsScreen extends ConsumerWidget {
     WidgetRef ref,
     String proposalId,
   ) async {
-    // Optimistic UI or just loading?
-    // Let's show loading dialog or just async await with snackbar
     try {
-      await ref.read(userRepositoryProvider).useShield(proposalId);
-      // Refresh both proposals and user
-      ref.invalidate(proposalsProvider);
-      ref.invalidate(userProvider);
+      await ref.read(proposalLogicProvider).useShield(proposalId);
 
       if (context.mounted) {
         showAuraSnackbar(

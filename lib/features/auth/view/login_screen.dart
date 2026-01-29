@@ -1,6 +1,6 @@
 import 'package:bro_leveling/core/constants/theme.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
-import 'package:bro_leveling/features/auth/data/auth_repository.dart';
+import 'package:bro_leveling/features/auth/logic/auth_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,7 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await ref
-          .read(authRepositoryProvider)
+          .read(authLogicProvider)
           .signIn(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
@@ -109,17 +109,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await ref
-          .read(authRepositoryProvider)
+          .read(authLogicProvider)
           .signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           );
       if (mounted) {
-        showAuraSnackbar(
-          context,
-          'Account created!',
-          type: SnackType.success,
-        );
+        showAuraSnackbar(context, 'Account created!', type: SnackType.success);
         // Switch back to login mode
         setState(() {
           _isSignUpMode = false;

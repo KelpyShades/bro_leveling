@@ -1,7 +1,9 @@
 import 'package:bro_leveling/core/constants/theme.dart';
+import 'package:bro_leveling/features/proposals/logic/proposal_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BottomNavBar extends StatelessWidget {
+class BottomNavBar extends ConsumerWidget {
   final int currentIndex;
   final Function(int) onTap;
 
@@ -12,7 +14,8 @@ class BottomNavBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeCount = ref.watch(activeProposalsCountProvider);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       height: 60,
@@ -39,7 +42,7 @@ class BottomNavBar extends StatelessWidget {
             'Ranks',
           ),
           // Center Proposal Button (highlighted)
-          buildCenterButton(2, Icons.gavel),
+          buildCenterButton(2, Icons.gavel, activeCount),
           buildNavItem(
             3,
             Icons.history_edu_outlined,
@@ -52,35 +55,78 @@ class BottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget buildCenterButton(int index, IconData icon) {
+  Widget buildCenterButton(int index, IconData icon, int activeCount) {
     final isSelected = currentIndex == index;
     return GestureDetector(
       onTap: () => onTap(index),
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: isSelected
-                ? [AppColors.gold, AppColors.goldDark]
-                : [AppColors.surfaceLight, AppColors.surface],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (isSelected ? AppColors.gold : Colors.black).withAlpha(80),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: isSelected
+                    ? [AppColors.gold, AppColors.goldDark]
+                    : [AppColors.surfaceLight, AppColors.surface],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                if (activeCount > 0)
+                  BoxShadow(
+                    color: AppColors.gold.withAlpha(150),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                BoxShadow(
+                  color: (isSelected ? AppColors.gold : Colors.black).withAlpha(
+                    80,
+                  ),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Icon(
-          icon,
-          color: isSelected ? AppColors.background : AppColors.gold,
-          size: 24,
-        ),
+            child: Icon(
+              icon,
+              color: isSelected ? AppColors.background : AppColors.gold,
+              size: 24,
+            ),
+          ),
+          if (activeCount > 0)
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.surface, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.error.withAlpha(100),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                child: Center(
+                  child: Text(
+                    '$activeCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

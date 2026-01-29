@@ -1,7 +1,6 @@
 import 'package:bro_leveling/core/constants/theme.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
-import 'package:bro_leveling/features/dashboard/data/user_repository.dart';
-import 'package:bro_leveling/features/dashboard/logic/user_provider.dart';
+import 'package:bro_leveling/features/dashboard/logic/user_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,8 +51,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(userRepositoryProvider).createUser(username);
-      ref.invalidate(userProvider);
+      await ref.read(userLogicProvider).createUser(username);
       if (mounted) {
         context.go('/home');
       }

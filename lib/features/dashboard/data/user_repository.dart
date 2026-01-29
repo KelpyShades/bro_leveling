@@ -42,12 +42,35 @@ class UserRepository {
     return data != null;
   }
 
+  /// Fetch the current user profile immediately.
+  Future<UserModel?> getUser() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    final data = await _client
+        .from('users')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (data == null) return null;
+    return UserModel.fromJson(data);
+  }
+
   Future<List<UserModel>> getAllUsers() async {
     final data = await _client
         .from('users')
         .select()
         .order('aura', ascending: false);
     return data.map((json) => UserModel.fromJson(json)).toList();
+  }
+
+  Stream<List<UserModel>> getLeaderboardStream() {
+    return _client
+        .from('users')
+        .stream(primaryKey: ['id'])
+        .order('aura', ascending: false)
+        .map((data) => data.map((json) => UserModel.fromJson(json)).toList());
   }
 
   /// Create a new user with the given username.
@@ -97,6 +120,42 @@ class UserRepository {
     return List<Map<String, dynamic>>.from(response);
   }
 
+  Stream<List<Map<String, dynamic>>> getGlobalAuraHistoryStream() {
+    return _client
+        .from('aura_events')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .limit(50)
+        .asyncMap((data) async {
+          if (data.isEmpty) return data;
+
+          final userIds = data
+              .map((e) => e['user_id'] as String?)
+              .whereType<String>()
+              .toList();
+
+          if (userIds.isEmpty) return data;
+
+          final users = await _client
+              .from('users')
+              .select('id, username')
+              .filter('id', 'in', userIds);
+
+          final userMap = {
+            for (final u in users) u['id'] as String: u['username'] as String,
+          };
+
+          return data.map((event) {
+            final newEvent = Map<String, dynamic>.from(event);
+            final userId = newEvent['user_id'] as String?;
+            if (userId != null && userMap.containsKey(userId)) {
+              newEvent['users'] = {'username': userMap[userId]};
+            }
+            return newEvent;
+          }).toList();
+        });
+  }
+
   /// Share aura with another user.
   Future<void> shareAura({
     required String toUserId,
@@ -120,5 +179,18 @@ class UserRepository {
         .limit(50);
 
     return List<Map<String, dynamic>>.from(data);
+  }
+
+  Stream<List<Map<String, dynamic>>> getAuraHistoryStream() {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return Stream.value([]);
+
+    return _client
+        .from('aura_events')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .limit(50)
+        .map((data) => List<Map<String, dynamic>>.from(data));
   }
 }

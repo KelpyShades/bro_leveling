@@ -1,11 +1,12 @@
 import 'package:bro_leveling/core/constants/theme.dart';
-import 'package:bro_leveling/features/auth/data/auth_repository.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bro_leveling/features/auth/logic/auth_logic.dart';
+import 'package:bro_leveling/features/dashboard/logic/user_logic.dart';
+import 'package:bro_leveling/features/leaderboard/logic/leaderboard_provider.dart';
+import 'package:bro_leveling/features/dashboard/logic/user_provider.dart';
+import 'package:bro_leveling/features/dashboard/data/user_model.dart';
 import 'package:bro_leveling/core/utils/aura_utils.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
-import 'package:bro_leveling/features/dashboard/logic/user_provider.dart';
-import 'package:bro_leveling/features/dashboard/data/user_repository.dart';
-import 'package:bro_leveling/features/dashboard/data/user_model.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -139,7 +140,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                           _buildStat(
                             'STATUS',
-                            user.isBroken ? 'BROKEN' : 'ACTIVE',
+                            user.isBroken ? 'AURALESS' : 'ACTIVE',
                             user.isBroken ? AppColors.error : AppColors.success,
                           ),
                         ],
@@ -190,38 +191,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         const SizedBox(height: 16),
 
                         // Recipient dropdown
-                        FutureBuilder<List<UserModel>>(
-                          future: ref
-                              .read(userRepositoryProvider)
-                              .getAllUsers(),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const CircularProgressIndicator(
-                                color: AppColors.gold,
-                              );
-                            }
-                            final users = snapshot.data!
-                                .where((u) => u.id != user.id && !u.isBroken)
-                                .toList();
-                            return DropdownButtonFormField<UserModel>(
-                              decoration: const InputDecoration(
-                                hintText: 'Select recipient',
-                              ),
-                              dropdownColor: AppColors.surface,
-                              initialValue: _selectedRecipient,
-                              items: users.map((u) {
-                                return DropdownMenuItem(
-                                  value: u,
-                                  child: Text(
-                                    u.username,
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
-                                    ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final usersAsync = ref.watch(leaderboardProvider);
+                            return usersAsync.when(
+                              skipLoadingOnReload: true,
+                              skipError: true,
+                              data: (usersList) {
+                                final recipients = usersList
+                                    .where(
+                                      (u) => u.id != user.id && !u.isBroken,
+                                    )
+                                    .toList();
+                                return DropdownButtonFormField<UserModel>(
+                                  decoration: const InputDecoration(
+                                    hintText: 'Select recipient',
                                   ),
+                                  dropdownColor: AppColors.surface,
+                                  initialValue: _selectedRecipient,
+                                  items: recipients.map((u) {
+                                    return DropdownMenuItem(
+                                      value: u,
+                                      child: Text(
+                                        u.username,
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) =>
+                                      setState(() => _selectedRecipient = val),
                                 );
-                              }).toList(),
-                              onChanged: (val) =>
-                                  setState(() => _selectedRecipient = val),
+                              },
+                              loading: () => const CircularProgressIndicator(
+                                color: AppColors.gold,
+                              ),
+                              error: (err, stack) => const Text(
+                                'Error loading users',
+                                style: TextStyle(color: AppColors.error),
+                              ),
                             );
                           },
                         ),
@@ -306,7 +315,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   height: 50,
                   child: OutlinedButton.icon(
                     onPressed: () async {
-                      await ref.read(authRepositoryProvider).signOut();
+                      await ref.read(authLogicProvider).signOut();
                       if (context.mounted) {
                         context.go('/');
                       }
@@ -382,7 +391,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     try {
       await ref
-          .read(userRepositoryProvider)
+          .read(userLogicProvider)
           .shareAura(toUserId: _selectedRecipient!.id, amount: amount);
       if (mounted) {
         showAuraSnackbar(
@@ -402,7 +411,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _claimRecovery() async {
     try {
-      await ref.read(userRepositoryProvider).claimWeeklyRecovery();
+      await ref.read(userLogicProvider).claimWeeklyRecovery();
       if (mounted) {
         showAuraSnackbar(
           context,

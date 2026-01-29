@@ -1,7 +1,7 @@
 import 'package:bro_leveling/core/constants/theme.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
 import 'package:bro_leveling/features/dashboard/data/user_model.dart';
-import 'package:bro_leveling/features/proposals/data/proposal_repository.dart';
+import 'package:bro_leveling/features/proposals/logic/proposal_logic.dart';
 import 'package:bro_leveling/features/leaderboard/logic/leaderboard_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -284,7 +284,7 @@ class _CreateProposalScreenState extends ConsumerState<CreateProposalScreen> {
     setState(() => _isLoading = true);
     try {
       await ref
-          .read(proposalRepositoryProvider)
+          .read(proposalLogicProvider)
           .createProposal(
             targetUserId: _selectedTarget!.id,
             amount: _type == 'penalty' ? -amount : amount,
