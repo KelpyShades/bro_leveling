@@ -17,6 +17,17 @@ _ProposalModel _$ProposalModelFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       closesAt: DateTime.parse(json['closes_at'] as String),
+      targetUsername: json['target_username'] as String?,
+      supportVoterIds:
+          (json['support_voter_ids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      rejectVoterIds:
+          (json['reject_voter_ids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       shielded: json['shielded'] as bool? ?? false,
     );
 
@@ -31,5 +42,8 @@ Map<String, dynamic> _$ProposalModelToJson(_ProposalModel instance) =>
       'status': instance.status,
       'created_at': instance.createdAt.toIso8601String(),
       'closes_at': instance.closesAt.toIso8601String(),
+      'target_username': instance.targetUsername,
+      'support_voter_ids': instance.supportVoterIds,
+      'reject_voter_ids': instance.rejectVoterIds,
       'shielded': instance.shielded,
     };

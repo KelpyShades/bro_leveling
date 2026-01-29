@@ -8,12 +8,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-class ProposalsScreen extends ConsumerWidget {
+class ProposalsScreen extends ConsumerStatefulWidget {
   const ProposalsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProposalsScreen> createState() => _ProposalsScreenState();
+}
+
+class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
+  final Map<String, bool> _votingLoader = {};
+
+  @override
+  Widget build(BuildContext context) {
     final proposalsAsync = ref.watch(proposalsProvider);
+    final userVotesAsync = ref.watch(userVotesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -92,6 +100,17 @@ class ProposalsScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
+                    if (prop.targetUsername != null)
+                      Text(
+                        'FOR: ${prop.targetUsername!.toUpperCase()}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.gold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    const SizedBox(height: 4),
 
                     // Amount
                     Row(
@@ -121,8 +140,6 @@ class ProposalsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-
                     // Reason
                     Text(
                       prop.reason,
@@ -157,33 +174,136 @@ class ProposalsScreen extends ConsumerWidget {
                       ],
                     ),
 
-                    // Voting buttons
+                    // Voting buttons or Results
                     if (prop.status == 'pending') ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () =>
-                                  _vote(context, ref, prop.id, 'support'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.success,
+                      userVotesAsync.when(
+                        data: (votes) {
+                          final userVote = votes[prop.id];
+
+                          if (userVote != null) {
+                            return Column(
+                              children: [
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.gold.withAlpha(50),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'VOTING CLOSED FOR YOU',
+                                            style: TextStyle(
+                                              color: AppColors.textMuted,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                          Text(
+                                            'YOU VOTED: ${userVote.toUpperCase()}',
+                                            style: TextStyle(
+                                              color: userVote == 'support'
+                                                  ? AppColors.success
+                                                  : AppColors.error,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children: [
+                                          _buildVoteBar(
+                                            'SUPPORT',
+                                            prop.supportCount,
+                                            AppColors.success,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          _buildVoteBar(
+                                            'REJECT',
+                                            prop.rejectCount,
+                                            AppColors.error,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: _votingLoader[prop.id] == true
+                                          ? null
+                                          : () => _vote(prop.id, 'support'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.success,
+                                      ),
+                                      child: _votingLoader[prop.id] == true
+                                          ? const SizedBox(
+                                              height: 16,
+                                              width: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text('SUPPORT'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: _votingLoader[prop.id] == true
+                                          ? null
+                                          : () => _vote(prop.id, 'reject'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.error,
+                                      ),
+                                      child: _votingLoader[prop.id] == true
+                                          ? const SizedBox(
+                                              height: 16,
+                                              width: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text('REJECT'),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              child: const Text('SUPPORT'),
+                            ],
+                          );
+                        },
+                        loading: () => const SizedBox(
+                          height: 50,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.gold,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () =>
-                                  _vote(context, ref, prop.id, 'reject'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.error,
-                              ),
-                              child: const Text('REJECT'),
-                            ),
-                          ),
-                        ],
+                        ),
+                        error: (_, __) => const SizedBox.shrink(),
                       ),
                     ] else if (prop.status == 'approved' &&
                         prop.type == 'penalty' &&
@@ -217,8 +337,7 @@ class ProposalsScreen extends ConsumerWidget {
                             child: SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
-                                onPressed: () =>
-                                    _useShield(context, ref, prop.id),
+                                onPressed: () => _useShield(prop.id),
                                 icon: const Icon(Icons.security),
                                 label: const Text(
                                   'USE SHIELD (REVERSE PENALTY)',
@@ -268,33 +387,69 @@ class ProposalsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _vote(
-    BuildContext context,
-    WidgetRef ref,
-    String id,
-    String value,
-  ) async {
+  Widget _buildVoteBar(String label, int count, Color color) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: count > 0 ? 1.0 : 0.0, // Simplified visualization
+              backgroundColor: color.withAlpha(30),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _vote(String id, String value) async {
+    setState(() => _votingLoader[id] = true);
     try {
       await ref.read(proposalLogicProvider).vote(id, value);
-      if (context.mounted) {
+      if (mounted) {
         showAuraSnackbar(context, 'Vote cast: $value', type: SnackType.success);
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         showAuraSnackbar(context, 'Error: $e', type: SnackType.error);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _votingLoader[id] = false);
       }
     }
   }
 
-  Future<void> _useShield(
-    BuildContext context,
-    WidgetRef ref,
-    String proposalId,
-  ) async {
+  Future<void> _useShield(String proposalId) async {
     try {
       await ref.read(proposalLogicProvider).useShield(proposalId);
 
-      if (context.mounted) {
+      if (mounted) {
         showAuraSnackbar(
           context,
           'Shield Activated! Penalty reversed.',
@@ -302,7 +457,7 @@ class ProposalsScreen extends ConsumerWidget {
         );
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         showAuraSnackbar(
           context,
           'Failed to use shield: $e',

@@ -12,3 +12,9 @@ final activeProposalsCountProvider = Provider.autoDispose<int>((ref) {
   final proposals = ref.watch(proposalsProvider).value ?? [];
   return proposals.where((p) => p.status == 'pending').length;
 });
+
+final userVotesProvider = StreamProvider.autoDispose<Map<String, String>>((
+  ref,
+) {
+  return ref.watch(proposalRepositoryProvider).getUserVotesStream();
+});

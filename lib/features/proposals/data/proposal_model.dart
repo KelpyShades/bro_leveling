@@ -15,8 +15,18 @@ sealed class ProposalModel with _$ProposalModel {
     required String status, // 'pending', 'approved', 'rejected'
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'closes_at') required DateTime closesAt,
+    @JsonKey(name: 'target_username') String? targetUsername,
+    @JsonKey(name: 'support_voter_ids')
+    @Default([])
+    List<String> supportVoterIds,
+    @JsonKey(name: 'reject_voter_ids') @Default([]) List<String> rejectVoterIds,
     @Default(false) bool shielded,
   }) = _ProposalModel;
+
+  const ProposalModel._();
+
+  int get supportCount => supportVoterIds.length;
+  int get rejectCount => rejectVoterIds.length;
 
   factory ProposalModel.fromJson(Map<String, dynamic> json) =>
       _$ProposalModelFromJson(json);
