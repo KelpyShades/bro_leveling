@@ -257,11 +257,14 @@ class ProposalsScreen extends ConsumerWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/create-proposal'),
-        backgroundColor: AppColors.gold,
-        foregroundColor: AppColors.background,
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100.0),
+        child: FloatingActionButton(
+          onPressed: () => context.push('/create-proposal'),
+          backgroundColor: AppColors.gold,
+          foregroundColor: AppColors.background,
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
