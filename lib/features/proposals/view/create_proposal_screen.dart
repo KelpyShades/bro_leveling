@@ -36,6 +36,8 @@ class _CreateProposalScreenState extends ConsumerState<CreateProposalScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text('NEW PROPOSAL'),
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

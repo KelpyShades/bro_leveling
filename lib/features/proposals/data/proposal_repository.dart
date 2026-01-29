@@ -46,7 +46,7 @@ class ProposalRepository {
       'type': type,
       'reason': reason,
       'closes_at': DateTime.now()
-          .add(const Duration(hours: 12))
+          .add(const Duration(hours: 6))
           .toIso8601String(),
     });
   }

@@ -15,6 +15,8 @@ class ShieldScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text('AURA SHIELD'),
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: userAsync.when(
         data: (user) {

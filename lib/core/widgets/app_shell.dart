@@ -10,16 +10,39 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Map shell index (0,1,2,3) to visual index (0,1,3,4)
+    final shellIndex = navigationShell.currentIndex;
+    final visualIndex = shellIndex < 2 ? shellIndex : shellIndex + 1;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true,
       body: navigationShell,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.go('/proposals'),
+        backgroundColor: AppColors.gold,
+        foregroundColor: Colors.black,
+        // shape: const RoundedRectangleBorder(
+        //   borderRadius: BorderRadius.all(Radius.circular(16)),
+        // ),
+        elevation: 8,
+        child: const Icon(Icons.gavel),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: BottomNavBar(
-        currentIndex: navigationShell.currentIndex,
+        currentIndex: visualIndex,
         onTap: (index) {
+          if (index == 2) {
+            context.go('/chat');
+            return;
+          }
+
+          // Map visual index (0,1,3,4) back to shell index (0,1,2,3)
+          final branchIndex = index < 2 ? index : index - 1;
+
           navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
+            branchIndex,
+            initialLocation: branchIndex == shellIndex,
           );
         },
       ),

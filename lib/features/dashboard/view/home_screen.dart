@@ -64,6 +64,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
+            scrolledUnderElevation: 0,
             centerTitle: false,
             title: Text(
               user.username.toUpperCase(),
@@ -76,7 +77,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             actions: [
               // Codex Button
               IconButton(
-                onPressed: () => context.push('/codex'),
+                onPressed: () => context.go('/codex'),
                 icon: const Icon(Icons.menu_book, color: AppColors.textPrimary),
               ),
             ],
@@ -239,7 +240,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // Indestructible Virgin Mode
                       // Shield Indicator
                       GestureDetector(
-                        onTap: () => context.push('/streak'),
+                        onTap: () => context.go('/streak'),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -268,7 +269,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       // Streak indicator - tappable
                       GestureDetector(
-                        onTap: () => context.push('/shield'),
+                        onTap: () => context.go('/shield'),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,

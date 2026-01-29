@@ -36,6 +36,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text('PROFILE'),
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: userAsync.when(
         skipLoadingOnReload: true,

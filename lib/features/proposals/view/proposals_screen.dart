@@ -27,6 +27,12 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.gold),
+          onPressed: () => context.go('/home'),
+        ),
         title: const Text('PROPOSALS'),
       ),
       body: proposalsAsync.when(
@@ -220,22 +226,6 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        children: [
-                                          _buildVoteBar(
-                                            'SUPPORT',
-                                            prop.supportCount,
-                                            AppColors.success,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          _buildVoteBar(
-                                            'REJECT',
-                                            prop.rejectCount,
-                                            AppColors.error,
-                                          ),
-                                        ],
-                                      ),
                                     ],
                                   ),
                                 ),
@@ -303,7 +293,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                             ),
                           ),
                         ),
-                        error: (_, __) => const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
                       ),
                     ] else if (prop.status == 'approved' &&
                         prop.type == 'penalty' &&
@@ -375,54 +365,11 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
           ),
         ),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 100.0),
-        child: FloatingActionButton(
-          onPressed: () => context.push('/create-proposal'),
-          backgroundColor: AppColors.gold,
-          foregroundColor: AppColors.background,
-          child: const Icon(Icons.add),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVoteBar(String label, int count, Color color) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: AppColors.textMuted,
-                ),
-              ),
-              Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
-              value: count > 0 ? 1.0 : 0.0, // Simplified visualization
-              backgroundColor: color.withAlpha(30),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              minHeight: 4,
-            ),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.go('/create-proposal'),
+        backgroundColor: AppColors.gold,
+        foregroundColor: AppColors.background,
+        child: const Icon(Icons.add),
       ),
     );
   }

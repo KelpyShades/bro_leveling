@@ -177,6 +177,8 @@ class CodexScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
         title: const Text('AURA CODEX'),
       ),

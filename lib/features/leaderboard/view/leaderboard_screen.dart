@@ -17,6 +17,8 @@ class LeaderboardScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text('LEADERBOARD'),
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: leaderboardAsync.when(
         skipLoadingOnReload: true,

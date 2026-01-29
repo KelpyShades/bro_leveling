@@ -23,6 +23,8 @@ class StreakScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text('STREAK'),
       ),
       body: userAsync.when(
