@@ -16,17 +16,24 @@ sealed class ProposalModel with _$ProposalModel {
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'closes_at') required DateTime closesAt,
     @JsonKey(name: 'target_username') String? targetUsername,
+    @JsonKey(name: 'proposer_username') String? proposerUsername,
     @JsonKey(name: 'support_voter_ids')
     @Default([])
     List<String> supportVoterIds,
     @JsonKey(name: 'reject_voter_ids') @Default([]) List<String> rejectVoterIds,
     @Default(false) bool shielded,
+    @JsonKey(name: 'is_anonymous') @Default(false) bool isAnonymous,
+    @JsonKey(name: 'revealed_at') DateTime? revealedAt,
   }) = _ProposalModel;
 
   const ProposalModel._();
 
   int get supportCount => supportVoterIds.length;
   int get rejectCount => rejectVoterIds.length;
+
+  /// Whether the proposer should be hidden (anonymous and not yet revealed)
+  bool get isProposerHidden =>
+      isAnonymous && revealedAt == null && status == 'active';
 
   factory ProposalModel.fromJson(Map<String, dynamic> json) =>
       _$ProposalModelFromJson(json);

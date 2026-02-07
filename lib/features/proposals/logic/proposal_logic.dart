@@ -20,6 +20,7 @@ class ProposalLogic {
     required int amount,
     required String type,
     required String reason,
+    bool isAnonymous = false,
   }) async {
     await _ref
         .read(proposalRepositoryProvider)
@@ -28,6 +29,7 @@ class ProposalLogic {
           amount: amount,
           type: type,
           reason: reason,
+          isAnonymous: isAnonymous,
         );
   }
 }

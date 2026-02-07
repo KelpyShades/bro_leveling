@@ -2,6 +2,7 @@ import 'package:bro_leveling/core/constants/theme.dart';
 import 'package:bro_leveling/core/utils/aura_utils.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
 
+import 'package:bro_leveling/features/bounty/view/bounty_card.dart';
 import 'package:bro_leveling/features/dashboard/logic/user_provider.dart';
 import 'package:bro_leveling/features/dashboard/logic/user_logic.dart';
 
@@ -20,6 +21,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _hasCheckedOnboarding = false;
+  bool _isClaimingDaily = false;
+  bool _isClaimingRecovery = false;
 
   @override
   void initState() {
@@ -205,26 +208,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           height: 56,
                           child: ElevatedButton(
                             onPressed:
-                                (user.isBroken ||
+                                (_isClaimingDaily ||
+                                    user.isBroken ||
                                     _hasClaimedToday(user.lastDailyClaim))
                                 ? null
                                 : () => _claimDaily(context),
-                            child: Text(
-                              _hasClaimedToday(user.lastDailyClaim)
-                                  ? 'CLAIMED'
-                                  : 'CLAIM DAILY',
-                              style: const TextStyle(letterSpacing: 2),
-                            ),
+                            child: _isClaimingDaily
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.background,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    _hasClaimedToday(user.lastDailyClaim)
+                                        ? 'CLAIMED'
+                                        : 'CLAIM DAILY',
+                                    style: const TextStyle(letterSpacing: 2),
+                                  ),
                           ),
                         ),
 
                         if (user.isBroken) ...[
                           const SizedBox(height: 16),
                           TextButton(
-                            onPressed: () => _claimRecovery(context),
-                            child: const Text('Claim Weekly Recovery (+25)'),
+                            onPressed: _isClaimingRecovery
+                                ? null
+                                : () => _claimRecovery(context),
+                            child: _isClaimingRecovery
+                                ? const SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Claim Weekly Recovery (+25)'),
                           ),
                         ],
+
+                        // Bounty card
+                        const SizedBox(height: 32),
+                        const BountyCard(),
                       ],
                     ),
                   ),
@@ -237,8 +264,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     spacing: 10,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Indestructible Virgin Mode
-                      // Shield Indicator
+                      // Momentum indicator - tappable
                       GestureDetector(
                         onTap: () => context.go('/streak'),
                         child: Container(
@@ -249,11 +275,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.surface,
                             borderRadius: BorderRadius.circular(20),
+                            border: user.momentumMultiplier >= 1.3
+                                ? Border.all(
+                                    color: AppColors.warning.withAlpha(100),
+                                    width: 1,
+                                  )
+                                : null,
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('🔥', style: TextStyle(fontSize: 16)),
+                              Text(
+                                user.momentumMultiplier >= 1.5
+                                    ? '☄️'
+                                    : user.momentumMultiplier >= 1.3
+                                    ? '🔥'
+                                    : user.momentumMultiplier >= 1.1
+                                    ? '📈'
+                                    : '🌱',
+                                style: const TextStyle(fontSize: 16),
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 '${user.streak}',
@@ -261,6 +302,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   color: AppColors.warning,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.warning.withAlpha(30),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${user.momentumMultiplier}x',
+                                  style: const TextStyle(
+                                    color: AppColors.warning,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
                                 ),
                               ),
                             ],
@@ -295,6 +355,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                       ),
+                      // Prestige indicator - tappable
+                      if (user.ascensionCount > 0 || user.aura >= 300)
+                        GestureDetector(
+                          onTap: () => context.go('/prestige'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: user.ascensionCount > 0
+                                  ? AppColors.gold.withAlpha(30)
+                                  : AppColors.background.withAlpha(150),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: user.ascensionCount > 0
+                                    ? AppColors.gold.withAlpha(100)
+                                    : AppColors.gold.withAlpha(50),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                ...List.generate(
+                                  3,
+                                  (i) => Icon(
+                                    i < user.ascensionCount
+                                        ? Icons.star
+                                        : Icons.star_border,
+                                    size: 16,
+                                    color: i < user.ascensionCount
+                                        ? AppColors.gold
+                                        : AppColors.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -351,6 +449,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _claimDaily(BuildContext context) async {
+    setState(() => _isClaimingDaily = true);
     try {
       final logic = ref.read(userLogicProvider);
 
@@ -367,6 +466,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (context.mounted) {
         final bonus = result['milestone_bonus'] ?? 0;
         final auraGained = result['aura_gained'];
+        final multiplier = result['momentum_multiplier'] ?? 1.0;
+        final penalty = result['momentum_penalty'] ?? 0;
+        final brokeMomentum = result['broke_momentum'] ?? false;
 
         // Get updated state from stream
         final updatedUser = ref.read(userProvider).asData?.value;
@@ -374,25 +476,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           updatedUser?.indestructibleUntil,
         );
 
-        String message = bonus > 0
-            ? 'Daily claimed! +$auraGained (including +$bonus milestone bonus!)'
-            : 'Daily claimed! +$auraGained Aura';
+        String message;
+        if (brokeMomentum && penalty > 0) {
+          message =
+              '⚠️ Momentum broken! -$penalty penalty\nNet gain: +$auraGained Aura';
+        } else if (bonus > 0) {
+          message =
+              '🎉 Daily claimed! +$auraGained (×$multiplier + $bonus milestone!)';
+        } else if (multiplier > 1.0) {
+          message =
+              '🔥 Daily claimed! +$auraGained Aura (${multiplier}x momentum!)';
+        } else {
+          message = 'Daily claimed! +$auraGained Aura';
+        }
 
         if (!wasIndestructible && isNowIndestructible) {
           message +=
               '\n🛡️ INDESTRUCTIBLE VIRGIN MODE ACTIVATED! (12h Immunity)';
         }
 
-        showAuraSnackbar(context, message, type: SnackType.success);
+        showAuraSnackbar(
+          context,
+          message,
+          type: brokeMomentum ? SnackType.warning : SnackType.success,
+        );
       }
     } catch (e) {
       if (context.mounted) {
         showAuraSnackbar(context, e.toString(), type: SnackType.error);
       }
+    } finally {
+      if (mounted) setState(() => _isClaimingDaily = false);
     }
   }
 
   Future<void> _claimRecovery(BuildContext context) async {
+    setState(() => _isClaimingRecovery = true);
     try {
       await ref.read(userLogicProvider).claimWeeklyRecovery();
       if (context.mounted) {
@@ -406,6 +525,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (context.mounted) {
         showAuraSnackbar(context, 'Error: $e', type: SnackType.error);
       }
+    } finally {
+      if (mounted) setState(() => _isClaimingRecovery = false);
     }
   }
 

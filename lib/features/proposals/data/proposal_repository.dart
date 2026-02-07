@@ -12,8 +12,9 @@ class ProposalRepository {
   ProposalRepository(this._client);
 
   Stream<List<ProposalModel>> getProposalsStream() {
+    // Use view that includes both target and proposer usernames
     return _client
-        .from('proposals')
+        .from('proposals_with_usernames')
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: false)
         .map(
@@ -26,29 +27,22 @@ class ProposalRepository {
     required int amount,
     required String type,
     required String reason,
+    bool isAnonymous = false,
   }) async {
     final user = _client.auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
-    // Fetch target username
-    final targetUser = await _client
-        .from('users')
-        .select('username')
-        .eq('id', targetUserId)
-        .single();
-    final targetUsername = targetUser['username'] as String;
-
-    await _client.from('proposals').insert({
-      'proposer_id': user.id,
-      'target_user_id': targetUserId,
-      'target_username': targetUsername,
-      'amount': amount,
-      'type': type,
-      'reason': reason,
-      'closes_at': DateTime.now()
-          .add(const Duration(hours: 6))
-          .toIso8601String(),
-    });
+    // Use RPC for proper validation and 24h voting window
+    await _client.rpc(
+      'create_proposal',
+      params: {
+        'p_target_user_id': targetUserId,
+        'p_amount': amount.abs(), // RPC expects positive amount
+        'p_type': type,
+        'p_reason': reason,
+        'p_is_anonymous': isAnonymous,
+      },
+    );
   }
 
   Future<void> vote(String proposalId, String value) async {

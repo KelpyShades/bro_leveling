@@ -20,6 +20,7 @@ class _CreateProposalScreenState extends ConsumerState<CreateProposalScreen> {
   final _amountController = TextEditingController();
   UserModel? _selectedTarget;
   String _type = 'boost';
+  bool _isAnonymous = false;
   bool _isLoading = false;
 
   @override
@@ -232,7 +233,100 @@ class _CreateProposalScreenState extends ConsumerState<CreateProposalScreen> {
                 hintText: 'Why does this person deserve this?',
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
+
+            // Anonymous option
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: _isAnonymous
+                    ? Border.all(color: AppColors.gold.withAlpha(100))
+                    : null,
+              ),
+              child: CheckboxListTile(
+                value: _isAnonymous,
+                onChanged: (val) => setState(() => _isAnonymous = val ?? false),
+                title: const Text(
+                  'Submit Anonymously',
+                  style: TextStyle(color: AppColors.textPrimary),
+                ),
+                subtitle: Text(
+                  _type == 'penalty'
+                      ? 'Identity hidden during voting (+5 Aura cost)'
+                      : 'Identity hidden during voting (free for boosts)',
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                ),
+                activeColor: AppColors.gold,
+                secondary: Icon(
+                  Icons.visibility_off,
+                  color: _isAnonymous ? AppColors.gold : AppColors.textMuted,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Cost preview
+            // Cost display - only show for penalty proposals
+            if (_type == 'penalty') ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'PENALTY COST',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    Text(
+                      '-${10 + (_isAnonymous ? 5 : 0)} Aura',
+                      style: const TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              // Free badge for boosts
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withAlpha(20),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.success.withAlpha(50)),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.celebration, color: AppColors.success, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'BOOSTS ARE FREE!',
+                      style: TextStyle(
+                        color: AppColors.success,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
 
             // Submit button
             SizedBox(
@@ -292,6 +386,7 @@ class _CreateProposalScreenState extends ConsumerState<CreateProposalScreen> {
             amount: _type == 'penalty' ? -amount : amount,
             type: _type,
             reason: _reasonController.text.trim(),
+            isAnonymous: _isAnonymous,
           );
       if (mounted) {
         context.pop();

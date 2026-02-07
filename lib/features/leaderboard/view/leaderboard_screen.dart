@@ -140,35 +140,6 @@ class LeaderboardScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          if (user.indestructibleUntil != null &&
-              user.indestructibleUntil!.isAfter(DateTime.now()))
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.success.withAlpha(200),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(color: AppColors.success, blurRadius: 10),
-                ],
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.verified_user, color: Colors.white, size: 16),
-                  SizedBox(width: 8),
-                  Text(
-                    'INDESTRUCTIBLE',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -202,9 +173,6 @@ class LeaderboardScreen extends ConsumerWidget {
   Widget _buildUserCard(UserModel user, int rank) {
     final title = getTitle(user.aura, isHim: user.isHim);
     final auraColor = getAuraColor(user.aura, isBroken: user.isBroken);
-    final isIndestructible =
-        user.indestructibleUntil != null &&
-        user.indestructibleUntil!.isAfter(DateTime.now());
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -282,42 +250,6 @@ class LeaderboardScreen extends ConsumerWidget {
                     ),
                     if (user.isBroken)
                       const Text('💀', style: TextStyle(fontSize: 12)),
-
-                    if (isIndestructible)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.auraHigh.withAlpha(20),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: AppColors.auraHigh,
-                            width: 1,
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.verified_user,
-                              size: 10,
-                              color: AppColors.auraHigh,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'INDESTRUCTIBLE',
-                              style: TextStyle(
-                                color: AppColors.auraHigh,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
               ],

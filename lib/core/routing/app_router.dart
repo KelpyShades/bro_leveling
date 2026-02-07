@@ -12,6 +12,7 @@ import 'package:bro_leveling/features/onboarding/view/onboarding_screen.dart';
 import 'package:bro_leveling/features/profile/view/profile_screen.dart';
 import 'package:bro_leveling/features/proposals/view/create_proposal_screen.dart';
 import 'package:bro_leveling/features/proposals/view/proposals_screen.dart';
+import 'package:bro_leveling/features/prestige/view/prestige_screen.dart';
 import 'package:bro_leveling/features/shield/view/shield_screen.dart';
 import 'package:bro_leveling/features/streak/view/streak_screen.dart';
 import 'package:bro_leveling/features/chat/view/chat_screen.dart';
@@ -66,6 +67,10 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/proposals',
           builder: (context, state) => const ProposalsScreen(),
+        ),
+        GoRoute(
+          path: '/prestige',
+          builder: (context, state) => const PrestigeScreen(),
         ),
         GoRoute(path: '/chat', builder: (context, state) => const ChatScreen()),
 

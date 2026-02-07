@@ -17,6 +17,7 @@ class ProposalsScreen extends ConsumerStatefulWidget {
 
 class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
   final Map<String, bool> _votingLoader = {};
+  final Map<String, bool> _shieldLoader = {};
 
   @override
   Widget build(BuildContext context) {
@@ -106,16 +107,47 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    if (prop.targetUsername != null)
-                      Text(
-                        'FOR: ${prop.targetUsername!.toUpperCase()}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.gold,
-                          letterSpacing: 1.2,
+                    // Target and Proposer info
+                    Row(
+                      children: [
+                        if (prop.targetUsername != null)
+                          Expanded(
+                            child: Text(
+                              'FOR: ${prop.targetUsername!.toUpperCase()}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.gold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
+                        // Proposer info (anonymous handling)
+                        Row(
+                          children: [
+                            if (prop.isAnonymous) ...[
+                              const Icon(
+                                Icons.visibility_off,
+                                size: 12,
+                                color: AppColors.textMuted,
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              'BY: ${prop.isProposerHidden ? 'ANONYMOUS' : (prop.proposerUsername?.toUpperCase() ?? 'UNKNOWN')}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: prop.isProposerHidden
+                                    ? AppColors.textMuted
+                                    : AppColors.textSecondary,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
+                    ),
                     const SizedBox(height: 4),
 
                     // Amount
@@ -327,8 +359,19 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                             child: SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
-                                onPressed: () => _useShield(prop.id),
-                                icon: const Icon(Icons.security),
+                                onPressed: _shieldLoader[prop.id] == true
+                                    ? null
+                                    : () => _useShield(prop.id),
+                                icon: _shieldLoader[prop.id] == true
+                                    ? const SizedBox(
+                                        height: 16,
+                                        width: 16,
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.surface,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.security),
                                 label: const Text(
                                   'USE SHIELD (REVERSE PENALTY)',
                                 ),
@@ -393,6 +436,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
   }
 
   Future<void> _useShield(String proposalId) async {
+    setState(() => _shieldLoader[proposalId] = true);
     try {
       await ref.read(proposalLogicProvider).useShield(proposalId);
 
@@ -411,6 +455,8 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
           type: SnackType.error,
         );
       }
+    } finally {
+      if (mounted) setState(() => _shieldLoader[proposalId] = false);
     }
   }
 }
