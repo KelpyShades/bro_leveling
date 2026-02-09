@@ -10,6 +10,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bro_leveling/core/error_handling/error_handler.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -503,7 +504,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        showAuraSnackbar(context, e.toString(), type: SnackType.error);
+        ErrorTranslator.translate(e, context: context);
       }
     } finally {
       if (mounted) setState(() => _isClaimingDaily = false);
@@ -523,7 +524,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        showAuraSnackbar(context, 'Error: $e', type: SnackType.error);
+        ErrorTranslator.translate(e, context: context);
       }
     } finally {
       if (mounted) setState(() => _isClaimingRecovery = false);

@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class BottomNavBar extends ConsumerWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final int chatBadgeCount;
 
   const BottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.chatBadgeCount = 0,
   });
 
   @override
@@ -39,7 +41,13 @@ class BottomNavBar extends ConsumerWidget {
             Icons.leaderboard,
             'Ranks',
           ),
-          buildNavItem(2, Icons.chat_bubble_outline, Icons.chat_bubble, 'Chat'),
+          buildNavItem(
+            2,
+            Icons.chat_bubble_outline,
+            Icons.chat_bubble,
+            'Chat',
+            badgeCount: chatBadgeCount,
+          ),
           buildNavItem(
             3,
             Icons.history_edu_outlined,
@@ -56,8 +64,9 @@ class BottomNavBar extends ConsumerWidget {
     int index,
     IconData icon,
     IconData activeIcon,
-    String label,
-  ) {
+    String label, {
+    int badgeCount = 0,
+  }) {
     final isSelected = currentIndex == index;
     final color = isSelected ? AppColors.gold : AppColors.textMuted;
 
@@ -68,7 +77,37 @@ class BottomNavBar extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isSelected ? activeIcon : icon, color: color, size: 24),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(isSelected ? activeIcon : icon, color: color, size: 24),
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '$badgeCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 4),
             Text(
               label,

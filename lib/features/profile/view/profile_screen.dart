@@ -6,6 +6,7 @@ import 'package:bro_leveling/features/dashboard/logic/user_provider.dart';
 import 'package:bro_leveling/features/dashboard/data/user_model.dart';
 import 'package:bro_leveling/core/utils/aura_utils.dart';
 import 'package:bro_leveling/core/widgets/snackbar.dart';
+import 'package:bro_leveling/core/error_handling/error_handler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -406,7 +407,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        showAuraSnackbar(context, 'Error: $e', type: SnackType.error);
+        ErrorTranslator.translate(e, context: context);
       }
     }
   }
@@ -423,7 +424,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        showAuraSnackbar(context, 'Error: $e', type: SnackType.error);
+        ErrorTranslator.translate(e, context: context);
       }
     }
   }
