@@ -14,7 +14,7 @@ class ProposalRepository {
   Stream<List<ProposalModel>> getProposalsStream() {
     // Use view that includes both target and proposer usernames
     return _client
-        .from('proposals_with_usernames')
+        .from('proposals')
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: false)
         .map(

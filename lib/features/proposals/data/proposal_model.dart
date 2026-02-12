@@ -33,7 +33,7 @@ sealed class ProposalModel with _$ProposalModel {
 
   /// Whether the proposer should be hidden (anonymous and not yet revealed)
   bool get isProposerHidden =>
-      isAnonymous && revealedAt == null && status == 'active';
+      isAnonymous && revealedAt == null && status == 'pending';
 
   factory ProposalModel.fromJson(Map<String, dynamic> json) =>
       _$ProposalModelFromJson(json);
